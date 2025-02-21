@@ -18,18 +18,24 @@ const Login = () => {
         const user = result.user;
         setUser(user);
 
-        // Construct userData object
+          // Check if user already exists in the database
+      const userExists = await axios.get(`http://localhost:5000/users/${user.email}`);
+
+      if (userExists.data) {
+        // User already exists, just navigate
+        console.log("User already exists in the database.");
+        navigate("/home");
+      } else {
+        // If user does not exist, store their data in the database
         const userData = {
           displayName: user?.displayName || "Unknown User",
           email: user?.email || "No Email",
           photoURL: user?.photoURL || "",
         };
 
-        // Send user data to backend
         await axios.post("http://localhost:5000/users", userData);
-
-        // Navigate after login
         navigate("/home");
+      }
       })
       .catch((error) => console.error("Login Error:", error));
   };

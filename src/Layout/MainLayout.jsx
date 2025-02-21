@@ -7,10 +7,15 @@ const MainLayout = () => {
     <div className=" flex flex-col min-h-screen">
       <Navbar></Navbar>
       <div className="flex-grow w-full">
-        <div className="">
+       
           <Outlet />
         </div>
-      </div>
+      
+     
+        <footer className="bg-gradient-to-l from-purple-700 via-indigo-800 to-blue-900 text-white text-center py-4">
+          Task Manager &copy; 2025
+        </footer>
+      
     </div>
   );
 };

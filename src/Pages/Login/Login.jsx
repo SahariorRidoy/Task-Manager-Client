@@ -1,55 +1,63 @@
 import { useContext } from "react";
-import googleImg from "../../assets/google.png";
 import { AuthContext } from "../../Provider/AuthProvider";
-import toast from "react-hot-toast";
-import { Typewriter } from "react-simple-typewriter";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { FcGoogle } from "react-icons/fc";
 
 const Login = () => {
   const navigate = useNavigate();
-  const {handleGoogleLogin, setUser } = useContext(AuthContext);
-  // Google Login
+  const { handleGoogleLogin, setUser } = useContext(AuthContext);
+
+  // Google Login Function
   const submitGoogleLogin = (e) => {
     e.preventDefault();
     handleGoogleLogin()
       .then((result) => {
-        const user = result.user;
-        setUser(user);
-        console.log(user);
+        setUser(result.user);
         navigate("/home");
-        toast.success("Login Successful!", {
-          duration: 4000,
-        });
-       
       })
-      .catch((error) => {});
+      .catch((error) => console.error(error));
   };
 
-
   return (
-    <div className="max-w-sm lg:max-w-xl lg:mx-auto  border-2 bg-base-300 shadow-lg rounded-lg py-10 mx-4 lg:px-0 ">
-      <div className="text-center">
-        <h1 className="text-[#11175D] w-full overflow-hidden text-4xl font-bold mb-7">
-          <Typewriter
-            words={["Login to your account!"]}
-            cursorStyle="|"
-            typeSpeed={70}
-            delaySpeed={1000}
-          />
-        </h1>
-      </div>
-      <div className="text-center flex justify-center">
-       
-      
-         
-          <div className="hover:opacity-50 cursor-pointer w-60 flex gap-3 mx-auto border-[#11175D] rounded-full items-center py-2 border-2 pl-7 pr-10 border-opacity-30 my-4">
-            <img src={googleImg} alt="" />
+    <div className="h-screen w-full flex items-center justify-center bg-gradient-to-br from-purple-700 via-indigo-800 to-blue-900 relative overflow-hidden">
 
-            <button onClick={submitGoogleLogin}>Login with Google</button>
-          </div>
-         
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.5 }}
+        transition={{ duration: 2 }}
+        className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.2)_0%,_transparent_70%)]"
+      />
+
+    
+      <motion.div
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, ease: "easeOut" }}
+        className="backdrop-blur-md bg-white/10 border border-white/30 shadow-2xl rounded-3xl p-10 w-[90%] sm:w-[60%] md:w-[45%] lg:w-[35%] flex flex-col items-center text-white"
+      >
+        {/* Welcome Text */}
+        <h2 className="text-3xl font-bold mb-4">Welcome to TaskManager </h2>
+        <p className="text-white/80 text-sm text-center mb-6">
+          Organize your tasks effortlessly with a single sign-in.
+        </p>
+
       
-      </div>
+        <motion.button
+          onClick={submitGoogleLogin}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex cursor-pointer items-center gap-3 bg-white/20 hover:bg-white/30 transition duration-300 px-6 py-3 rounded-full text-white shadow-md backdrop-blur-md"
+        >
+          <FcGoogle size={24} />
+          Sign in with Google
+        </motion.button>
+
+        {/* Footer Text */}
+        <p className="text-white/60 text-xs mt-6">
+          Stay productive. Stay focused. 
+        </p>
+      </motion.div>
     </div>
   );
 };

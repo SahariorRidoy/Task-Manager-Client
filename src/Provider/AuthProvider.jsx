@@ -1,18 +1,15 @@
-import React, { createContext, useEffect, useState } from "react";
+import  { createContext, useEffect, useState } from "react";
+import app from "../firebase";
+import toast from "react-hot-toast";
 import {
   getAuth,
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
   signOut,
-  updateProfile,
 } from "firebase/auth";
 
-import app from "../firebase";
-import toast from "react-hot-toast";
-
 export const AuthContext = createContext();
-
 const auth = getAuth(app);
 
 const AuthProvider = ({ children }) => {
@@ -23,18 +20,12 @@ const AuthProvider = ({ children }) => {
   const handleGoogleLogin = () => {
     return signInWithPopup(auth, googleProvider);
   };
-
   //   Logout
   const logOut = () => {
     setLoading(true);
     toast.success("Log out successful!", { duration: 3000 });
     return signOut(auth);
   };
-  // Update user email and photo data
-  const updateUserProfile = (updatedData) => {
-    return updateProfile(auth.currentUser, updatedData);
-  };
-
   // Passing data using context
   const authInfo = {
     handleGoogleLogin,
@@ -43,7 +34,6 @@ const AuthProvider = ({ children }) => {
     loading,
     setLoading,
     setUser,
-    updateUserProfile,
   };
   // Logout handler
   useEffect(() => {
@@ -60,5 +50,4 @@ const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>
   );
 };
-
 export default AuthProvider;

@@ -19,7 +19,7 @@ Follow these steps to set up the project locally:
 Client Side
 # Clone the repository:
 ```sh
-git clone <https://github.com/SahariorRidoy/Task-Manager-Client>
+git clone https://github.com/SahariorRidoy/Task-Manager-Client
 cd Task-Manager-Client
 ```
 # Install dependencies:
@@ -33,7 +33,7 @@ npm run dev
 ## Server Side
 # Clone the server repository:
 ```sh
-git clone <https://github.com/SahariorRidoy/Task-Manager-Server>
+git clone https://github.com/SahariorRidoy/Task-Manager-Server
 cd Task-Manager-Server
 ```
 # Install dependencies:
@@ -44,6 +44,9 @@ npm install
 ```sh
 npm start
 ```
+
+## Go to http://localhost:5173 for client side
+
 
 ## 📦 Dependencies
 "dependencies": {

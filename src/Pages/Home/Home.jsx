@@ -9,7 +9,7 @@ export default function Home() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("To-Do");
   const [menuOpen, setMenuOpen] = useState(null);
-  const [editTask, setEditTask] = useState(null); // Track the task being edited
+  const [editTask, setEditTask] = useState(null); 
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editCategory, setEditCategory] = useState("To-Do");
@@ -19,7 +19,7 @@ export default function Home() {
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["tasks"],
     queryFn: async () => {
-      const response = await axios.get("http://localhost:5000/tasks");
+      const response = await axios.get("https://task-manager-server-eight-brown.vercel.app/tasks");
       return response.data;
     },
   });
@@ -27,7 +27,7 @@ export default function Home() {
   // adding a new task
   const addTaskMutation = useMutation({
     mutationFn: async (newTask) => {
-      await axios.post("http://localhost:5000/tasks", newTask);
+      await axios.post("https://task-manager-server-eight-brown.vercel.app/tasks", newTask);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["tasks"]); // Refetch tasks after adding
@@ -72,7 +72,7 @@ export default function Home() {
   //deleting a task
   const deleteTaskMutation = useMutation({
     mutationFn: async (taskId) => {
-      await axios.delete(`http://localhost:5000/tasks/${taskId}`);
+      await axios.delete(`https://task-manager-server-eight-brown.vercel.app/tasks/${taskId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["tasks"]); // Refetch tasks after deletion
@@ -112,7 +112,7 @@ export default function Home() {
   const editTaskMutation = useMutation({
     mutationFn: async (updatedTask) => {
       await axios.put(
-        `http://localhost:5000/tasks/${updatedTask._id}`,
+        `https://task-manager-server-eight-brown.vercel.app/tasks/${updatedTask._id}`,
         updatedTask
       );
     },
@@ -166,6 +166,9 @@ export default function Home() {
 
   return (
     <div className="pt-6 max-w-[1320px] mx-auto min-h-[calc(80vh)]">
+
+
+      {/* Add new Task */}
       <div className="flex gap-6 items-center">
         <h1 className="text-3xl">Welcome to Task Manager</h1>
         <button
@@ -178,6 +181,8 @@ export default function Home() {
 
       {/* Task Sections */}
       <div className="grid md:grid-cols-3 mt-6  mb-4 gap-6">
+
+
         {/* To-Do Section */}
         <div className="bg-purple-300 px-3 md:h-[675px] overflow-y-scroll">
           <div className="flex justify-center">
@@ -274,6 +279,9 @@ export default function Home() {
                         {task.title}
                       </h2>
                       <p className="text-purple-800">{task.description}</p>
+                      <p className="text-gray-500 text-sm">
+                        Created on: {new Date(task.timestamp).toLocaleString()}
+                      </p>
                     </div>
 
                     {/* Dropdown Menu */}
@@ -307,6 +315,7 @@ export default function Home() {
               )}
           </div>
         </div>
+
 
         {/* In-Progress Section */}
         <div className="bg-orange-300 px-3">
@@ -365,6 +374,9 @@ export default function Home() {
                         {task.title}
                       </h2>
                       <p className="text-orange-800">{task.description}</p>
+                      <p className="text-gray-500 text-sm">
+                        Created on: {new Date(task.timestamp).toLocaleString()}
+                      </p>
                     </div>
 
                     {/* Dropdown Menu */}
@@ -398,6 +410,7 @@ export default function Home() {
               )}
           </div>
         </div>
+
 
         {/* Done Section */}
         <div className="bg-green-200 px-3">
@@ -449,13 +462,16 @@ export default function Home() {
                   // Normal Task Display
                   <div
                     key={task._id}
-                    className="flex justify-between mt-4 p-4 bg-green-200 border border-green-500 rounded-lg min-h-[100px] relative"
+                    className="flex justify-between mt-4 p-4 bg-green-200 border border-green-500 rounded-lg min-h-[150px] relative"
                   >
                     <div>
                       <h2 className="text-xl text-green-600 font-semibold">
                         {task.title}
                       </h2>
                       <p className="text-green-800">{task.description}</p>
+                      <p className="text-gray-500 text-sm">
+                        Created on: {new Date(task.timestamp).toLocaleString()}
+                      </p>
                     </div>
 
                     {/* Dropdown Menu */}
@@ -489,6 +505,8 @@ export default function Home() {
               )}
           </div>
         </div>
+
+
       </div>
     </div>
   );

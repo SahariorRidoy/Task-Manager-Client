@@ -19,7 +19,7 @@ const Login = () => {
         setUser(user);
 
           // Check if user already exists in the database
-      const userExists = await axios.get(`http://localhost:5000/users/${user.email}`);
+      const userExists = await axios.get(`https://task-manager-server-eight-brown.vercel.app/users/${user.email}`);
 
       if (userExists.data) {
         // User already exists, just navigate
@@ -33,7 +33,7 @@ const Login = () => {
           photoURL: user?.photoURL || "",
         };
 
-        await axios.post("http://localhost:5000/users", userData);
+        await axios.post("https://task-manager-server-eight-brown.vercel.app/users", userData);
         navigate("/home");
       }
       })

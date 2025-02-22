@@ -8,9 +8,11 @@ export default function Home() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("To-Do");
-  const [menuOpen, setMenuOpen] = useState(null); // Track which task's menu is open
-
-
+  const [menuOpen, setMenuOpen] = useState(null);
+  const [editTask, setEditTask] = useState(null); // Track the task being edited
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editCategory, setEditCategory] = useState("To-Do");
 
   // Fetch tasks
   const queryClient = useQueryClient();
@@ -67,15 +69,6 @@ export default function Home() {
     setShowForm(false);
   };
 
-
-
-
-
-
-
-
-
-
   //deleting a task
   const deleteTaskMutation = useMutation({
     mutationFn: async (taskId) => {
@@ -115,6 +108,59 @@ export default function Home() {
     });
   };
 
+  // Edit Task
+  const editTaskMutation = useMutation({
+    mutationFn: async (updatedTask) => {
+      await axios.put(
+        `http://localhost:5000/tasks/${updatedTask._id}`,
+        updatedTask
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["tasks"]); // Refresh tasks
+      Swal.fire({
+        position: "top-left",
+        icon: "success",
+        title: "Task Updated Successfully!",
+        showConfirmButton: false,
+        timer: 1000,
+      });
+      setEditTask(null); // Close edit mode
+    },
+  });
+  // Handle edit task
+  const handleEditTask = (task) => {
+    setEditTask(task);
+    setEditTitle(task.title);
+    setEditDescription(task.description);
+    setEditCategory(task.category);
+    setMenuOpen(null); // Close menu after clicking Edit
+  };
+  // Handle updating the task
+  const handleUpdateTask = (e) => {
+    e.preventDefault();
+    if (!editTitle.trim()) {
+      Swal.fire({
+        position: "top-left",
+        icon: "error",
+        title: "Task title cannot be empty!",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      return;
+    }
+
+    const updatedTask = {
+      _id: editTask._id,
+      title: editTitle,
+      description: editDescription,
+      category: editCategory,
+      timestamp: editTask.timestamp,
+    };
+
+    editTaskMutation.mutate(updatedTask);
+  };
+
   if (isLoading)
     return <div className="text-center mt-10">Loading tasks...</div>;
 
@@ -143,25 +189,25 @@ export default function Home() {
 
           {/* Task Form */}
           {showForm && (
-            <div className="mt-4 p-4 border border-purple-500 rounded-lg">
+            <div className="mt-4 p-4 bg-purple-200 border border-purple-500 rounded-lg">
               <h2 className="text-xl text-purple-600 font-semibold">
                 Add New Task
               </h2>
               <input
                 type="text"
-                placeholder="Task Title (max 50 characters)"
+                placeholder="Enter Task Title "
                 maxLength="50"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full p-2 mt-2 border border-purple-500 rounded-md"
+                className="w-full p-2 mt-2 border bg-white outline-purple-700 border-purple-500 rounded-md"
                 required
               />
               <textarea
-                placeholder="Task Description (optional, max 200 characters)"
+                placeholder="Enter Task Description (optional)"
                 maxLength="200"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full p-2 mt-2 border border-purple-500 rounded-md"
+                className="w-full p-2 mt-2 border bg-white outline-purple-700 border-purple-500 rounded-md"
               ></textarea>
               <div className="flex gap-4 mt-4">
                 <button
@@ -182,52 +228,88 @@ export default function Home() {
 
           {/* Display To-Do Tasks */}
           <div>
-      {tasks
-        .filter((task) => task.category === "To-Do")
-        .map((task) => (
-          <div
-            key={task._id}
-            className="flex justify-between mt-4 p-4 bg-purple-200 border border-purple-500 rounded-lg h-[150px] relative"
-          >
-            <div>
-              <h2 className="text-xl text-purple-600 font-semibold">{task.title}</h2>
-              <p className="text-purple-800">{task.description}</p>
-            </div>
-
-            {/* Dropdown three dot */}
-            <div className="relative">
-              <button
-                className="bg-purple-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-purple-700"
-                onClick={() => toggleMenu(task._id)}
-              >
-                <BsThreeDotsVertical />
-              </button>
-
-              {/* Dropdown Menu */}
-              {menuOpen === task._id && (
-                <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-md">
-                  <button
-                    className="w-full text-left cursor-pointer px-4 py-2 text-purple-600 hover:bg-purple-300"
-                    onClick={() => handleEditTask(task._id)}
+            {tasks
+              .filter((task) => task.category === "To-Do")
+              .map((task) =>
+                editTask && editTask._id === task._id ? (
+                  // Edit Form
+                  <div
+                    key={task._id}
+                    className="mt-4 p-4 bg-purple-300 border border-purple-500 rounded-lg"
                   >
-                    Edit
-                  </button>
-                  <button
-                    className="w-full text-left cursor-pointer px-4 py-2 text-red-600 hover:bg-red-200"
-                    onClick={() => handleDeleteTask(task._id)}
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="w-full p-2 border border-purple-500 outline-purple-600 bg-purple-200 rounded-md"
+                    />
+                    <textarea
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      className="w-full p-2 mt-2 border border-purple-500 outline-purple-600 bg-purple-200 rounded-md"
+                    ></textarea>
+                    <div className="flex gap-4 mt-4">
+                      <button
+                        className="bg-purple-500 hover:bg-purple-800 cursor-pointer text-white px-4 py-2 rounded-md"
+                        onClick={handleUpdateTask}
+                      >
+                        Save Changes
+                      </button>
+                      <button
+                        className="bg-gray-500 hover:bg-gray-700 cursor-pointer text-white px-4 py-2 rounded-md"
+                        onClick={() => setEditTask(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  // Normal Task Display
+                  <div
+                    key={task._id}
+                    className="flex justify-between mt-4 p-4 bg-purple-200 border border-purple-500 rounded-lg min-h-[150px] relative"
                   >
-                    Delete
-                  </button>
-                </div>
+                    <div>
+                      <h2 className="text-xl text-purple-600 font-semibold">
+                        {task.title}
+                      </h2>
+                      <p className="text-purple-800">{task.description}</p>
+                    </div>
+
+                    {/* Dropdown Menu */}
+                    <div className="relative">
+                      <button
+                        className="bg-purple-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-purple-700"
+                        onClick={() => toggleMenu(task._id)}
+                      >
+                        <BsThreeDotsVertical />
+                      </button>
+
+                      {menuOpen === task._id && (
+                        <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-md">
+                          <button
+                            className="w-full text-left cursor-pointer px-4 py-2 text-purple-600 hover:bg-purple-300"
+                            onClick={() => handleEditTask(task)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="w-full text-left cursor-pointer px-4 py-2 text-red-600 hover:bg-red-200"
+                            onClick={() => handleDeleteTask(task._id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
               )}
-            </div>
           </div>
-        ))}
-    </div>
         </div>
 
         {/* In-Progress Section */}
-        <div className="bg-orange-200 px-3">
+        <div className="bg-orange-300 px-3">
           <div className="flex justify-center">
             <h3 className="text-xl text-orange-700 font-semibold pt-2 border-b-2 border-orange-600">
               In-Progress
@@ -239,31 +321,88 @@ export default function Home() {
           <div>
             {tasks
               .filter((task) => task.category === "In-Progress")
-              .map((task) => (
-                <div
-                  key={task._id}
-                  className="mt-4 flex justify-between p-4 border border-orange-500 rounded-lg"
-                >
-                  <div>
-                    <h2 className="text-xl text-orange-600 font-semibold">
-                      {task.title}
-                    </h2>
-                    <p className="text-orange-800">{task.description}</p>
+              .map((task) =>
+                editTask && editTask._id === task._id ? (
+                  // Edit Form
+                  <div
+                    key={task._id}
+                    className="mt-4 p-4 bg-orange-200 border  border-orange-500 rounded-lg"
+                  >
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="w-full p-2 border bg-orange-100 outline-orange-600 border-orange-500 rounded-md"
+                    />
+                    <textarea
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      className="w-full p-2 mt-2 border outline-orange-600 bg-orange-100 border-orange-500 rounded-md"
+                    ></textarea>
+                    <div className="flex gap-4 mt-4">
+                      <button
+                        className="bg-orange-500 hover:bg-orange-800 cursor-pointer text-white px-4 py-2 rounded-md"
+                        onClick={handleUpdateTask}
+                      >
+                        Save Changes
+                      </button>
+                      <button
+                        className="bg-gray-500 hover:bg-gray-700 cursor-pointer text-white px-4 py-2 rounded-md"
+                        onClick={() => setEditTask(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <button className="bg-orange-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-orange-700">
-                      <BsThreeDotsVertical />
-                    </button>
+                ) : (
+                  // Normal Task Display
+                  <div
+                    key={task._id}
+                    className="flex justify-between mt-4 p-4 bg-orange-200 border border-orange-500 rounded-lg min-h-[150px] relative"
+                  >
+                    <div>
+                      <h2 className="text-xl text-orange-600 font-semibold">
+                        {task.title}
+                      </h2>
+                      <p className="text-orange-800">{task.description}</p>
+                    </div>
+
+                    {/* Dropdown Menu */}
+                    <div className="relative">
+                      <button
+                        className="bg-orange-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-orange-700"
+                        onClick={() => toggleMenu(task._id)}
+                      >
+                        <BsThreeDotsVertical />
+                      </button>
+
+                      {menuOpen === task._id && (
+                        <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-md">
+                          <button
+                            className="w-full text-left cursor-pointer px-4 py-2 text-orange-600 hover:bg-orange-300"
+                            onClick={() => handleEditTask(task)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="w-full text-left cursor-pointer px-4 py-2 text-red-600 hover:bg-red-200"
+                            onClick={() => handleDeleteTask(task._id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              )}
           </div>
         </div>
 
         {/* Done Section */}
         <div className="bg-green-200 px-3">
           <div className="flex justify-center">
-            <h3 className="text-xl font-semibold pt-2 border-b-2 border-green-600">
+            <h3 className="text-xl font-semibold text-green-600 pt-2 border-b-2 border-green-600">
               Done
             </h3>
           </div>
@@ -273,24 +412,81 @@ export default function Home() {
           <div>
             {tasks
               .filter((task) => task.category === "Done")
-              .map((task) => (
-                <div
-                  key={task._id}
-                  className="mt-4 flex justify-between p-4 border border-green-500 rounded-lg"
-                >
-                  <div>
-                    <h2 className="text-xl text-green-600 font-semibold">
-                      {task.title}
-                    </h2>
-                    <p className="text-green-800">{task.description}</p>
+              .map((task) =>
+                editTask && editTask._id === task._id ? (
+                  // Edit Form
+                  <div
+                    key={task._id}
+                    className="mt-4 p-4 bg-green-200 border  border-green-500 rounded-lg"
+                  >
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="w-full p-2 border bg-green-100 outline-green-600 border-green-500 rounded-md"
+                    />
+                    <textarea
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      className="w-full p-2 mt-2 border outline-green-600 bg-green-100 border-green-500 rounded-md"
+                    ></textarea>
+                    <div className="flex gap-4 mt-4">
+                      <button
+                        className="bg-green-500 hover:bg-green-800 cursor-pointer text-white px-4 py-2 rounded-md"
+                        onClick={handleUpdateTask}
+                      >
+                        Save Changes
+                      </button>
+                      <button
+                        className="bg-gray-500 hover:bg-gray-700 cursor-pointer text-white px-4 py-2 rounded-md"
+                        onClick={() => setEditTask(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center flex-col">
-                    <button className="bg-green-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-green-700">
-                      <BsThreeDotsVertical />
-                    </button>
+                ) : (
+                  // Normal Task Display
+                  <div
+                    key={task._id}
+                    className="flex justify-between mt-4 p-4 bg-green-200 border border-green-500 rounded-lg min-h-[100px] relative"
+                  >
+                    <div>
+                      <h2 className="text-xl text-green-600 font-semibold">
+                        {task.title}
+                      </h2>
+                      <p className="text-green-800">{task.description}</p>
+                    </div>
+
+                    {/* Dropdown Menu */}
+                    <div className="relative">
+                      <button
+                        className="bg-green-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-green-700"
+                        onClick={() => toggleMenu(task._id)}
+                      >
+                        <BsThreeDotsVertical />
+                      </button>
+
+                      {menuOpen === task._id && (
+                        <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-md">
+                          <button
+                            className="w-full text-left cursor-pointer px-4 py-2 text-green-600 hover:bg-green-300"
+                            onClick={() => handleEditTask(task)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="w-full text-left cursor-pointer px-4 py-2 text-red-600 hover:bg-red-200"
+                            onClick={() => handleDeleteTask(task._id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              )}
           </div>
         </div>
       </div>
